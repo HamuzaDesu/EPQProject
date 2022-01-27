@@ -1,0 +1,15 @@
+{% extends 'auth/authBase.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<h1>Login to app</h1>
+
+<form action="/login" method="post" class="loginForm">
+    <input type="text" name="username" class="formInput" id="" placeholder="Username" autocomplete="off">
+    <input type="password" name="password" class="formInput" id="" placeholder="Password" autocomplete="off"> 
+    <button type="submit">Login</button>
+</form>
+
+<a href="/register">Not Registered? CLick here to make an account</a>
+{% endblock %}
