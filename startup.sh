@@ -3,4 +3,4 @@ export FLASK_DEBUG=true
 export FLASK_ENV=development
 
 flask run --host=0.0.0.0 
-# ADD --cert=adhoc to end
+# add '--cert=adhoc' to use https instead of http
