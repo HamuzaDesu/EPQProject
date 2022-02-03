@@ -1,34 +1,21 @@
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, url_for
+from auth import auth
 
 app = Flask(__name__)
+
+app.register_blueprint(auth)
 
 app.secret_key = 'TEMP_SECRET_KEY'
 
 @app.route('/')
 def index():
-    return render_template('index.html', username = session['user']['username'])
-
-@app.route('/login', methods=['POST', 'GET'])
-def login():
-    if request.method == 'GET':
-        return render_template('/auth/login.html')
+    if 'LOGGED_IN' in session:
+        if session['LOGGED_IN']:
+            return render_template('index.html', firstName = session['user']['firstName'], lastName = session['user']['lastName'])
+        else:
+            return redirect(url_for('auth.login'))
     else:
-        for item in request.form:
-            print(request.form[item])
-
-        session['user'] = {
-            'username': request.form['username']
-        }
-
+        # first time startup on app
+        session['LOGGED_IN'] = False
         return redirect('/')
 
-@app.route('/register', methods=['POST', 'GET'])
-def register():
-    if request.method == 'GET':
-        return render_template('/auth/register.html')
-    else:
-        # register account logic here
-        for item in request.form:
-            print(request.form[item])
-        return redirect('/login')
-        
