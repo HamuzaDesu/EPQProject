@@ -1,0 +1,80 @@
+{% extends 'index/indexBase.html' %}
+
+{% block content %}
+
+{% set joinOrCreate = 'Create' if user.is_teacher else 'Join' %}
+
+<div class="createClass">
+    <h1>{{ joinOrCreate }} a class</h1>
+    
+    <form action="{{ url_for('api.create_classroom') if user.is_teacher else url_for('api.join_classroom') }}" method="post">
+        {% if user.is_teacher %}
+            <div>
+                <label for="className">Class name: </label>
+                <input type="text" id="className" name="className" placeholder="Class Name">
+            </div>
+        {% endif %}
+
+        <div>
+            <label for="classCode">Class code: </label>
+            <input type="text" id="classCode" name="classCode" placeholder="Class Code">
+        </div>
+    
+        {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class="flashes">
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+        {% endwith %}
+    
+        <button type="submit">{{joinOrCreate}} Class</button>
+    
+    </form>
+</div>
+
+<div class="classes">
+    <h1>Your classes: </h1>
+    <div>
+        {% if user.classes|length == 0 %}
+            <p>You are in no classes at the moment. {{joinOrCreate}} a class to get started</p>
+    
+        {% else %}
+            {% for class in user.classes %}
+                <div class="class" id="{{class}}">
+                    <h3 class="className"></h3>
+                    <h4 class="classCode"></h4>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    var classes = {{user.classes | tojson}}
+
+    window.addEventListener('load', (event) => {
+        {% set getClassUrl = url_for('api.get_class_info', class_code='') %}
+        {% set classroomUrl = url_for('index.class_room', class_code='') %}
+        
+
+        classes.forEach(classroom => {
+            fetch(`{{getClassUrl}}${classroom}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                var classroomContainer = document.getElementById(data.class_code)
+                classroomContainer.querySelector('.className').textContent = data.name
+                classroomContainer.querySelector('.classCode').textContent = data.class_code
+                classroomContainer.onclick = () => {
+                    window.location.href = `{{classroomUrl}}${data.class_code}`
+                }
+
+            })
+        })
+    })
+
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'index/indexBase.html' %}
+
+{% block content %}
+<h1>Welcome {{user.first_name}} {{user.last_name}}</h1>
+
+{% for item in user %}
+    <p>{{item}}  :  {{user[item]}} </p>
+{% endfor%}
+
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends 'index/indexBase.html' %}
+
+{% block content %}
+
+<a href="{{ url_for('index.classes') }}">
+    <i data-feather="arrow-left"></i>
+    Back to Classes
+</a>
+
+<h1>{{ classroom.name }}</h1>
+<h3>{{ classroom.class_code }}</h3>
+
+{% if user.is_teacher %}
+    <a href="{{url_for('api.delete_class_room', class_code=classroom.class_code, teacher_uuid=user.uuid)}}">Delete Classroom</a>
+    <h2 class="homeworkH2">Homework:</h2>
+    <div class="homeworkContainer" id="homeworkContainer">
+        {% if classroom.homeworks|length == 0 %}
+            <p>You have set no homework yet.</p>
+        {% endif %}
+
+        {% for homework in classroom.homeworks %}
+            <div class="homework" id="{{homework.id}}">
+                <h3 class="homeworkTitle"></h3>
+                <h3 class="homeworkDescription"></h3>
+                <h4 class="dateDue"></h4>
+                <a href="{{ url_for('api.remove_homework',class_code=classroom.class_code, homework_id=homework.id) }}">
+                    Remove Homework
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        let homeworks = {{classroom.homeworks|tojson}}
+        homeworks.forEach(homework => {
+            var homeworkContainer = document.getElementById(homework.id)
+            homeworkContainer.querySelector('.homeworkTitle').textContent = homework.title
+            homeworkContainer.querySelector('.homeworkDescription').textContent = homework.description
+            homeworkContainer.querySelector('.dateDue').textContent = homework.dateDue
+        })
+    </script>
+
+    <div class="setHomeworkForm">
+        <h2>Set Homework</h2>
+        <form action="{{ url_for('api.set_homework', class_code=classroom.class_code) }}" method="post" >
+            <div>
+                <label for="homeworkTitle">Homework Title: </label>
+                <input type="text" name="homeworkTitle" placeholder="Homework Title">
+            </div>
+
+            <div class="description">
+                <label for="homeworkDescription">Homework Description: </label>
+                <!-- <input type="textarea" name="homeworkDescription" placeholder="Homework Description"> -->
+                <textarea name="homeworkDescription" id="homeworkDescription" cols="50" rows="10"></textarea>
+            </div>
+
+            <div>
+                <label for="dateDue">Homework Date Due: </label>
+                <input type="date" name="dateDue">
+            </div>
+
+            <button type="submit">Set Homework</button>
+        </form>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="studentContainer">
+        <h2>Students:</h2>
+        {% for student in classroom.students %}
+            <div class="student" id="{{student}}">
+                <h3 class="studentUsername"></h3>
+                <h4 class="studentName"></h4>
+                <a class="removeLink" href="">Remove from class</a> 
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        let students = {{classroom.students|tojson}}
+        
+        window.addEventListener('load', (event) => {
+            
+            {% set getStudentInfoUrl = url_for('api.get_user_info', uuid='') %}
+            
+            students.forEach(student => {
+                fetch(`{{getStudentInfoUrl}}${student}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    var studentContainer = document.getElementById(data.uuid)
+                    studentContainer.querySelector('.studentUsername').textContent = data.username
+                    studentContainer.querySelector('.studentName').textContent = `${data.first_name} ${data.last_name}`
+                    studentContainer.querySelector('.removeLink').href = `/api/removeStudent/{{classroom.class_code}}/${data.uuid}`
+                })
+            })
+            
+        })
+    </script>
+{% else %}
+
+    <div class="homeworkContainer" id="homeworkContainer">
+        <h2>Homework:</h2>
+        <div class="uncompletedHomework">
+            <h2>Uncompleted:</h2>
+            {% if user.homeworks[classroom.class_code].uncompleted|length == 0 %}
+                <p>You are up to date with your homework!</p>
+            {% endif %}
+
+            {% for homework in user.homeworks[classroom.class_code].uncompleted %}
+                <div class="homework" id="{{homework.id}}">
+                    <h3 class="homeworkTitle"></h3>
+                    <h3 class="homeworkDescription"></h3>
+                    <h4 class="dateDue"></h4>
+                    <a href="{{ url_for('api.set_homework_as_complete', student_uuid=user.uuid, homework_id=homework.id, class_code=classroom.class_code) }}">Set as complete</a>
+                </div>
+            {% endfor %} 
+        </div>
+        <div class="completedHomework">
+            <h2>Completed:</h2>
+
+            {% for homework in user.homeworks[classroom.class_code].completed %}
+                <div class="homework" id="{{homework.id}}">
+                    <h3 class="homeworkTitle"></h3>
+                    <h3 class="homeworkDescription"></h3>
+                    <h4 class="dateDue"></h4>
+                </div>
+            {% endfor %}    
+        </div>
+    </div>
+
+    <script>
+        let homeworks = {{user.homeworks|tojson}}
+
+        homeworks['{{classroom.class_code}}'].uncompleted.forEach(homework => {
+            var homeworkContainer = document.getElementById(homework.id)
+            homeworkContainer.querySelector('.homeworkTitle').textContent = homework.title
+            homeworkContainer.querySelector('.homeworkDescription').textContent = homework.description
+            homeworkContainer.querySelector('.dateDue').textContent = homework.dateDue
+        })
+        homeworks['{{classroom.class_code}}'].completed.forEach(homework => {
+            var homeworkContainer = document.getElementById(homework.id)
+            homeworkContainer.querySelector('.homeworkTitle').textContent = homework.title
+            homeworkContainer.querySelector('.homeworkDescription').textContent = homework.description
+            homeworkContainer.querySelector('.dateDue').textContent = homework.dateDue
+        })
+    </script>
+
+{% endif %}
+
+{% endblock %}

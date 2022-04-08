@@ -6,11 +6,20 @@
 
 {% block form %}
 <form action="/register" method="post" class="loginForm">
-    <input type="text" name="firstName" class="formInput" placeholder="First Name" autocomplete="off">
-    <input type="text" name="lastName" class="formInput" placeholder="Last Name" autocomplete="off">
+    <input type="text" name="firstname" class="formInput" placeholder="First Name" autocomplete="off">
+    <input type="text" name="lastname" class="formInput" placeholder="Last Name" autocomplete="off">
+
+    <div>
+        <p>Are you a teacher or a student?</p>
+        <label for="isTeacher">Teacher</label>
+        <input type="radio" name="isTeacher" class="formInput" id="isTeacher" value="True" required>
+        <label for="isStusent">Student</label>
+        <input type="radio" name="isTeacher" class="formInput" id="isStudent" value="False">
+    </div>
 
     <input type="text" name="username" class="formInput" id="" placeholder="Username" autocomplete="off">
-    <input type="password" name="password" class="formInput" id="" placeholder="Password" autocomplete="off"> 
+    <input type="password" name="password" class="formInput" id="" placeholder="Password" autocomplete="off">
+
     <button type="submit">Register</button>
 </form>
 {% endblock %}
